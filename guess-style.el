@@ -27,6 +27,11 @@
   :group 'guess-style
   :type 'coding-system)
 
+(defcustom guess-style-output-messages nil
+  "Whether to output messages"
+  :group 'guess-style
+  :type 'boolean)
+
 (defcustom guess-style-guesser-alist
   `((indent-tabs-mode . (guess-style-guess-tabs-mode nil))
     (tab-width . (guess-style-guess-tab-width nil))
@@ -98,7 +103,8 @@ If FILE is nil, `buffer-file-name' is used."
                   ";;; End:\n")
           (switch-to-buffer (current-buffer))
           (write-file (expand-file-name guess-style-override-file))))
-    (error (warn "guess-style: %s" (error-message-string error)))))
+    (error (when guess-style-output-messages
+             (warn "guess-style: %s" (error-message-string error))))))
 
 (defun guess-style-read-override-file ()
   "Read overridden variables from `guess-style-override-file'."
@@ -144,7 +150,7 @@ FILE is the file or directory for which the override is valid."
 (defun guess-style-guess-variable (variable guesser mode)
   "Guess a value for VARIABLE according to `guess-style-guesser-alist'.
 If GUESSER is set, it's used instead of the default."
-  (if (or (null(car mode)) (eq (car mode) major-mode))
+  (when (or (null(car mode)) (eq (car mode) major-mode))
       (progn
        (unless guesser
          (setq guesser (car(cdr (assoc variable guess-style-guesser-alist)))))
@@ -153,12 +159,13 @@ If GUESSER is set, it's used instead of the default."
                   (cdr (assoc variable (guess-style-overridden-variables)))))
              (set (make-local-variable variable)
                   (or overridden-value (funcall guesser)))
-             (message "%s variable '%s' (%s)"
+             (when guess-style-output-messages
+               (message "%s variable '%s' (%s)"
                       (if overridden-value "Remembered" "Guessed")
-                      variable (symbol-value variable))
+                      variable (symbol-value variable)))
              `(lambda () ,(symbol-value variable)))
-         (error (message "Could not guess variable '%s' (%s)" variable
-                         (error-message-string err))
+         (error (when guess-style-output-messages
+                  (message "Could not guess variable '%s' (%s)" variable (error-message-string err)))
                 `(lambda () (error "%s" (error-message-string ,err))))))))
 
 ;;;###autoload
