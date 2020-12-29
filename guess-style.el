@@ -1,4 +1,4 @@
-;;; guess-style.el --- automatic setting of code style variables
+;;; guess-style.el --- automatic setting of code style variables -*- lexical-binding:t -*-
 
 (require 'cl-lib)
 
