@@ -1,5 +1,6 @@
 ;;; guess-style.el --- automatic setting of code style variables
-(eval-when-compile (require 'cl))
+
+(require 'cl-lib)
 
 (add-to-list 'debug-ignored-errors "^Not enough lines to guess variable$")
 (add-to-list 'debug-ignored-errors "^Not certain enough to guess variable$")
@@ -227,20 +228,20 @@ Special care is taken so no guesser is called twice."
   (and (boundp 'c-buffer-is-cc-mode)
        c-buffer-is-cc-mode
        (error "This is a cc-mode"))
-  (let* ((tab (case tab-width
+  (let* ((tab (cl-case tab-width
                 (8 "\\(\\( \\{,7\\}\t\\)\\|        \\)")
                 (4 "\\(\\( \\{,3\\}\t\\)\\|    \\)")
                 (2 "\\(\\( ?\t\\)\\|  \\)")))
          (end "[^[:space:]]")
-         (two-exp (case tab-width
+         (two-exp (cl-case tab-width
                     (8 (concat "^" tab "*   \\{4\\}?" end))
                     (4 (concat "^" tab "*  " end))
                     (2 (concat "^" tab tab "\\{2\\}*" end))))
-         (four-exp (case tab-width
+         (four-exp (cl-case tab-width
                      (8 (concat "^" tab "* \\{4\\}" end))
                      (4 (concat "^" tab tab "\\{2\\}*" end))
                      (2 (concat "^" tab "\\{2\\}" tab "\\{4\\}*" end))))
-         (eight-exp (case tab-width
+         (eight-exp (cl-case tab-width
                       (8 (concat "^" tab "+" end))
                       (4 (concat "^" tab "\\{2\\}+" end))
                       (2 (concat "^" tab "\\{4\\}+" end))))
@@ -274,7 +275,7 @@ for the current buffer."
   :type 'function)
 
 (defun guess-style-get-indent ()
-  (case major-mode
+  (cl-case major-mode
     (nxml-mode (when (boundp 'nxml-child-indent) nxml-child-indent))
     (css-mode (when (boundp 'css-indent-offset) css-indent-offset))
     (otherwise (and (boundp 'c-buffer-is-cc-mode)
