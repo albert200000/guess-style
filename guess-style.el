@@ -28,17 +28,36 @@
   :type 'coding-system)
 
 (defcustom guess-style-guesser-alist
-  `((indent-tabs-mode . guess-style-guess-tabs-mode)
-    (tab-width . guess-style-guess-tab-width)
-    (c-basic-offset . guess-style-guess-c-basic-offset)
-    (nxml-child-indent . guess-style-guess-indent)
-    (css-indent-offset . guess-style-guess-indent)
-    (,(if (and (>= emacs-major-version 24) (>= emacs-minor-version 3))
-          'python-indent-offset
-        'python-indent) . guess-style-guess-indent))
-  "*A list of cons containing a variable and a guesser function."
+  `((indent-tabs-mode . (guess-style-guess-tabs-mode nil))
+    (tab-width . (guess-style-guess-tab-width nil))
+    (c-basic-offset . (guess-style-guess-c-basic-offset nil))
+    (nxml-child-indent . (guess-style-guess-indent xml-mode))
+    (css-indent-offset . (guess-style-guess-indent css-mode))
+    (web-mode-markup-indent-offset . (guess-style-guess-indent web-mode))
+    (web-mode-code-indent-offset . (guess-style-guess-indent web-mode))
+    (web-mode-attr-indent-offset . (guess-style-guess-indent web-mode))
+    (js-indent-level . (guess-style-guess-indent js-mode))
+    (js-indent-level . (guess-style-guess-indent json-mode))
+    (js2-basic-offset . (guess-style-guess-indent js2-mode))
+    (lua-indent-level . (guess-style-guess-indent lua-mode))
+    (perl-indent-level . (guess-style-guess-indent perl-mode))
+    (cperl-indent-level . (guess-style-guess-indent cperl-mode))
+    (raku-indent-offset . (guess-style-guess-indent raku-mode))
+    (erlang-indent-level . (guess-style-guess-indent erlang-mode))
+    (ada-indent . (guess-style-guess-indent ada-mode))
+    (sgml-basic-offset . (guess-style-guess-indent sgml-mode))
+    (pascal-indent-level . (guess-style-guess-indent pascal-mode))
+    (typescript-indent-level . (guess-style-guess-indent typescript-mode))
+    (sh-basic-offset . (guess-style-guess-indent sh-mode))
+    (ruby-indent-level . (guess-style-guess-indent ruby-mode))
+    (enh-ruby-indent-level . (guess-style-guess-indent enh-ruby-mode))
+    (crystal-indent-level . (guess-style-guess-indent crystal-mode))
+    (rust-indent-offset . (guess-style-guess-indent rust-mode))
+    (rustic-indent-offset . (guess-style-guess-indent rustic-mode))
+    (scala-indent:step . (guess-style-guess-indent scala-mode)))
+  "*A list of cons containing a variable and a list with guesser function and major mode."
   :group 'guess-style
-  :type '(repeat (cons variable function)))
+  :type '(repeat (cons variable (function symbol))))
 
 (defvar guess-style-overridden-variable-alist 'not-read
   "List of files and directories with manually overridden guess-style variables.
@@ -122,23 +141,25 @@ FILE is the file or directory for which the override is valid."
   (guess-style-write-override-file))
 
 ;;;###autoload
-(defun guess-style-guess-variable (variable &optional guesser)
+(defun guess-style-guess-variable (variable guesser mode)
   "Guess a value for VARIABLE according to `guess-style-guesser-alist'.
 If GUESSER is set, it's used instead of the default."
-  (unless guesser
-    (setq guesser (cdr (assoc variable guess-style-guesser-alist))))
-  (condition-case err
-      (let ((overridden-value
-             (cdr (assoc variable (guess-style-overridden-variables)))))
-        (set (make-local-variable variable)
-             (or overridden-value (funcall guesser)))
-        (message "%s variable '%s' (%s)"
-                 (if overridden-value "Remembered" "Guessed")
-                 variable (symbol-value variable))
-        `(lambda () ,(symbol-value variable)))
-    (error (message "Could not guess variable '%s' (%s)" variable
-                    (error-message-string err))
-           `(lambda () (error "%s" (error-message-string ,err))))))
+  (if (or (null(car mode)) (eq (car mode) major-mode))
+      (progn
+       (unless guesser
+         (setq guesser (car(cdr (assoc variable guess-style-guesser-alist)))))
+       (condition-case err
+           (let ((overridden-value
+                  (cdr (assoc variable (guess-style-overridden-variables)))))
+             (set (make-local-variable variable)
+                  (or overridden-value (funcall guesser)))
+             (message "%s variable '%s' (%s)"
+                      (if overridden-value "Remembered" "Guessed")
+                      variable (symbol-value variable))
+             `(lambda () ,(symbol-value variable)))
+         (error (message "Could not guess variable '%s' (%s)" variable
+                         (error-message-string err))
+                `(lambda () (error "%s" (error-message-string ,err))))))))
 
 ;;;###autoload
 (defun guess-style-guess-all ()
@@ -148,10 +169,10 @@ Special care is taken so no guesser is called twice."
   (let (cache match)
     (dolist (pair guess-style-guesser-alist)
       ;; Cache, so we don't call the same guesser twice.
-      (if (setq match (assoc (cdr pair) cache))
-          (guess-style-guess-variable (car pair) (cdr match))
-        (push (cons (cdr pair)
-                    (guess-style-guess-variable (car pair) (cdr pair)))
+      (if (setq match (assoc (car(cdr pair)) cache))
+          (guess-style-guess-variable (car pair) (car(cdr match)) (cdr(cdr pair)))
+        (push (cons (car(cdr pair))
+                    (guess-style-guess-variable (car pair) (car(cdr pair)) (cdr(cdr pair))))
               cache)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -278,6 +299,26 @@ for the current buffer."
   (cl-case major-mode
     (nxml-mode (when (boundp 'nxml-child-indent) nxml-child-indent))
     (css-mode (when (boundp 'css-indent-offset) css-indent-offset))
+    (web-mode (when (boundp 'web-mode-markup-indent-offset) web-mode-markup-indent-offset))
+    (js-mode (when (boundp 'js-indent-level) js-indent-level))
+    (json-mode (when (boundp 'js-indent-level) js-indent-level))
+    (js2-mode (when (boundp 'js2-basic-offset) js2-basic-offset))
+    (lua-mode (when (boundp 'lua-indent-level) lua-indent-level))
+    (perl-mode (when (boundp 'perl-indent-level) perl-indent-level))
+    (cperl-mode (when (boundp 'cperl-indent-level) cperl-indent-level))
+    (raku-mode (when (boundp 'raku-indent-offset) raku-indent-offset))
+    (erlang-mode (when (boundp 'erlang-indent-level) erlang-indent-level))
+    (ada-mode (when (boundp 'ada-indent) ada-indent))
+    (sgml-mode (when (boundp 'sgml-basic-offset) sgml-basic-offset))
+    (pascal-mode (when (boundp 'pascal-indent-level) pascal-indent-level))
+    (typescript-mode (when (boundp 'typescript-indent-level) typescript-indent-level))
+    (sh-mode (when (boundp 'sh-basic-offset) sh-basic-offset))
+    (ruby-mode (when (boundp 'ruby-indent-level) ruby-indent-level))
+    (enh-ruby-mode (when (boundp 'enh-ruby-indent-level) enh-ruby-indent-level))
+    (crystal-mode (when (boundp 'crystal-indent-level) crystal-indent-level))
+    (rust-mode (when (boundp 'rust-indent-offset) rust-indent-offset))
+    (rustic-mode (when (boundp 'rustic-indent-offset) rustic-indent-offset))
+    (scala-mode (when (boundp 'scala-indent:step) scala-indent:step))
     (otherwise (and (boundp 'c-buffer-is-cc-mode)
                     c-buffer-is-cc-mode
                     (boundp 'c-basic-offset)
