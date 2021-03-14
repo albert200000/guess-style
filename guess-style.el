@@ -19,7 +19,7 @@
 (defcustom guess-style-guesser-alist
   `((indent-tabs-mode . (guess-style-guess-tabs-mode nil))
     (tab-width . (guess-style-guess-tab-width nil))
-    (c-basic-offset . (guess-style-guess-c-basic-offset nil))
+    (c-basic-offset . (guess-style-guess-indent cc-mode))
     (nxml-child-indent . (guess-style-guess-indent xml-mode))
     (css-indent-offset . (guess-style-guess-indent css-mode))
     (web-mode-markup-indent-offset . (guess-style-guess-indent web-mode))
@@ -130,31 +130,7 @@ Special care is taken so no guesser is called twice."
       (if (> many-spaces
              (* guess-style-maximum-false-spaces few-spaces)) 8 4))))
 
-(defun guess-style-how-many (regexp)
-  "A simplified `how-many' that uses `c-syntactic-re-search-forward'."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((count 0) opoint)
-      (while (and (< (point) (point-max))
-                  (progn (setq opoint (point))
-                         (when (fboundp 'c-syntactic-re-search-forward)
-                           (c-syntactic-re-search-forward regexp nil t))))
-        (if (= opoint (point))
-            (forward-char 1)
-          (setq count (1+ count))))
-      count)))
-
-(defun guess-style-guess-c-basic-offset ()
-  (unless (and (boundp 'c-buffer-is-cc-mode) c-buffer-is-cc-mode)
-    (error "Not a cc-mode"))
-  (let (c-buffer-is-cc-mode)
-    (guess-style-guess-indent 'guess-style-how-many)))
-
-(defun guess-style-guess-indent (&optional how-many-func)
-  (unless how-many-func (setq how-many-func 'how-many))
-  (and (boundp 'c-buffer-is-cc-mode)
-       c-buffer-is-cc-mode
-       (error "This is a cc-mode"))
+(defun guess-style-guess-indent ()
   (let* ((tab (cl-case tab-width
                 (8 "\\(\\( \\{,7\\}\t\\)\\|        \\)")
                 (4 "\\(\\( \\{,3\\}\t\\)\\|    \\)")
@@ -172,9 +148,9 @@ Special care is taken so no guesser is called twice."
                       (8 (concat "^" tab "+" end))
                       (4 (concat "^" tab "\\{2\\}+" end))
                       (2 (concat "^" tab "\\{4\\}+" end))))
-         (two (funcall how-many-func two-exp))
-         (four (funcall how-many-func four-exp))
-         (eight (funcall how-many-func eight-exp))
+         (two (how-many two-exp))
+         (four (how-many four-exp))
+         (eight (how-many eight-exp))
          (total (+ two four eight))
          (too-close-to-call (* guess-style-too-close-to-call total)))
     (when (< total guess-style-minimum-line-count)
