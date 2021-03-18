@@ -22,6 +22,7 @@
     (c-basic-offset . (guess-style-guess-indent cc-mode))
     (nxml-child-indent . (guess-style-guess-indent xml-mode))
     (css-indent-offset . (guess-style-guess-indent css-mode))
+    (standard-indent . (guess-style-guess-indent web-mode))
     (web-mode-markup-indent-offset . (guess-style-guess-indent web-mode))
     (web-mode-code-indent-offset . (guess-style-guess-indent web-mode))
     (web-mode-attr-indent-offset . (guess-style-guess-indent web-mode))
