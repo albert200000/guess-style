@@ -44,7 +44,8 @@
     (crystal-indent-level . (guess-style-guess-indent crystal-mode))
     (rust-indent-offset . (guess-style-guess-indent rust-mode))
     (rustic-indent-offset . (guess-style-guess-indent rustic-mode))
-    (scala-indent:step . (guess-style-guess-indent scala-mode)))
+    (scala-indent:step . (guess-style-guess-indent scala-mode))
+    (pug-tab-width . (guess-style-guess-indent pug-mode)))
   "*A list of cons containing a variable and a list with guesser function and major mode."
   :group 'guess-style
   :type '(repeat (cons variable (function symbol))))
@@ -202,6 +203,7 @@ for the current buffer."
     (rust-mode (when (boundp 'rust-indent-offset) rust-indent-offset))
     (rustic-mode (when (boundp 'rustic-indent-offset) rustic-indent-offset))
     (scala-mode (when (boundp 'scala-indent:step) scala-indent:step))
+    (pug-mode (when (boundp 'pug-tab-width) pug-tab-width))
     (otherwise (and (boundp 'c-buffer-is-cc-mode)
                     c-buffer-is-cc-mode
                     (boundp 'c-basic-offset)
