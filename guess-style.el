@@ -7,7 +7,6 @@
 
 (defgroup guess-style nil
   "Automatic setting of code style variables."
-  :group 'c
   :group 'files
   :group 'languages)
 
@@ -51,24 +50,23 @@
   :group 'guess-style
   :type '(repeat (cons variable (function symbol))))
 
-;;;###autoload
 (defun guess-style-guess-variable (variable guesser mode)
   "Guess a value for VARIABLE according to `guess-style-guesser-alist'.
 If GUESSER is set, it's used instead of the default."
   (when (or (null(car mode)) (eq (car mode) major-mode))
-      (progn
-       (unless guesser
-         (setq guesser (car(cdr (assoc variable guess-style-guesser-alist)))))
-       (condition-case err
-             (set (make-local-variable variable)
-                  (funcall guesser))
-             (when guess-style-output-messages
-               (message "%s variable Guessed (%s)"
-                      variable (symbol-value variable))
-             `(lambda () ,(symbol-value variable)))
-         (error (when guess-style-output-messages
-                  (message "Could not guess variable '%s' (%s)" variable (error-message-string err)))
-                `(lambda () (error "%s" (error-message-string ,err))))))))
+    (progn
+      (unless guesser
+        (setq guesser (car(cdr (assoc variable guess-style-guesser-alist)))))
+      (condition-case err
+          (set (make-local-variable variable)
+               (funcall guesser))
+        (when guess-style-output-messages
+          (message "%s variable Guessed (%s)"
+                   variable (symbol-value variable))
+          `(lambda () ,(symbol-value variable)))
+        (error (when guess-style-output-messages
+                 (message "Could not guess variable '%s' (%s)" variable (error-message-string err)))
+               `(lambda () (error "%s" (error-message-string ,err))))))))
 
 ;;;###autoload
 (defun guess-style-guess-all ()
@@ -172,61 +170,40 @@ Special care is taken so no guesser is called twice."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defcustom guess-style-lighter-format-func
-  'guess-style-lighter-default-format-func
-  "*Function used for formatting the lighter in `guess-style-info-mode'.
-This has to be a function that takes no arguments and returns a info string
-for the current buffer."
-  :group 'guess-style
-  :type 'function)
-
+;;;###autoload
 (defun guess-style-get-indent ()
-  (cl-case major-mode
-    (nxml-mode (when (boundp 'nxml-child-indent) nxml-child-indent))
-    (css-mode (when (boundp 'css-indent-offset) css-indent-offset))
-    (web-mode (when (boundp 'web-mode-markup-indent-offset) web-mode-markup-indent-offset))
-    (js-mode (when (boundp 'js-indent-level) js-indent-level))
-    (json-mode (when (boundp 'js-indent-level) js-indent-level))
-    (js2-mode (when (boundp 'js2-basic-offset) js2-basic-offset))
-    (lua-mode (when (boundp 'lua-indent-level) lua-indent-level))
-    (perl-mode (when (boundp 'perl-indent-level) perl-indent-level))
-    (cperl-mode (when (boundp 'cperl-indent-level) cperl-indent-level))
-    (raku-mode (when (boundp 'raku-indent-offset) raku-indent-offset))
-    (erlang-mode (when (boundp 'erlang-indent-level) erlang-indent-level))
-    (ada-mode (when (boundp 'ada-indent) ada-indent))
-    (sgml-mode (when (boundp 'sgml-basic-offset) sgml-basic-offset))
-    (pascal-mode (when (boundp 'pascal-indent-level) pascal-indent-level))
-    (typescript-mode (when (boundp 'typescript-indent-level) typescript-indent-level))
-    (sh-mode (when (boundp 'sh-basic-offset) sh-basic-offset))
-    (ruby-mode (when (boundp 'ruby-indent-level) ruby-indent-level))
-    (enh-ruby-mode (when (boundp 'enh-ruby-indent-level) enh-ruby-indent-level))
-    (crystal-mode (when (boundp 'crystal-indent-level) crystal-indent-level))
-    (rust-mode (when (boundp 'rust-indent-offset) rust-indent-offset))
-    (rustic-mode (when (boundp 'rustic-indent-offset) rustic-indent-offset))
-    (scala-mode (when (boundp 'scala-indent:step) scala-indent:step))
-    (pug-mode (when (boundp 'pug-tab-width) pug-tab-width))
-    (otherwise (and (boundp 'c-buffer-is-cc-mode)
-                    c-buffer-is-cc-mode
-                    (boundp 'c-basic-offset)
-                    c-basic-offset))))
-
-(defun guess-style-lighter-default-format-func ()
-  (let ((indent-depth (guess-style-get-indent)))
-    (concat (when indent-depth (format " >%d" indent-depth))
-            " " (if indent-tabs-mode (format "t%d" tab-width) "spc"))))
-
-(define-minor-mode guess-style-info-mode
-  "Minor mode to show guessed variables in the mode-line.
-Customize `guess-style-lighter-format-func' to change the variables."
-  nil nil nil)
-
-(define-globalized-minor-mode global-guess-style-info-mode
-  guess-style-info-mode (lambda () (guess-style-info-mode 1)))
-
-;; providing a lighter in `define-minor-mode' doesn't allow :eval forms
-(add-to-list 'minor-mode-alist
-             '(guess-style-info-mode
-               ((:eval (funcall guess-style-lighter-format-func)))))
+  (interactive)
+  (message "%d"
+           (cl-case major-mode
+             (nxml-mode (when (boundp 'nxml-child-indent) nxml-child-indent))
+             (css-mode (when (boundp 'css-indent-offset) css-indent-offset))
+             (web-mode (when (boundp 'web-mode-markup-indent-offset) web-mode-markup-indent-offset))
+             (js-mode (when (boundp 'js-indent-level) js-indent-level))
+             (json-mode (when (boundp 'js-indent-level) js-indent-level))
+             (js2-mode (when (boundp 'js2-basic-offset) js2-basic-offset))
+             (lua-mode (when (boundp 'lua-indent-level) lua-indent-level))
+             (perl-mode (when (boundp 'perl-indent-level) perl-indent-level))
+             (cperl-mode (when (boundp 'cperl-indent-level) cperl-indent-level))
+             (raku-mode (when (boundp 'raku-indent-offset) raku-indent-offset))
+             (erlang-mode (when (boundp 'erlang-indent-level) erlang-indent-level))
+             (ada-mode (when (boundp 'ada-indent) ada-indent))
+             (sgml-mode (when (boundp 'sgml-basic-offset) sgml-basic-offset))
+             (pascal-mode (when (boundp 'pascal-indent-level) pascal-indent-level))
+             (typescript-mode (when (boundp 'typescript-indent-level) typescript-indent-level))
+             (sh-mode (when (boundp 'sh-basic-offset) sh-basic-offset))
+             (ruby-mode (when (boundp 'ruby-indent-level) ruby-indent-level))
+             (enh-ruby-mode (when (boundp 'enh-ruby-indent-level) enh-ruby-indent-level))
+             (crystal-mode (when (boundp 'crystal-indent-level) crystal-indent-level))
+             (rust-mode (when (boundp 'rust-indent-offset) rust-indent-offset))
+             (rustic-mode (when (boundp 'rustic-indent-offset) rustic-indent-offset))
+             (scala-mode (when (boundp 'scala-indent:step) scala-indent:step))
+             (pug-mode (when (boundp 'pug-tab-width) pug-tab-width))
+             (otherwise (if
+                            (and (boundp 'c-buffer-is-cc-mode)
+                                 c-buffer-is-cc-mode
+                                 (boundp 'c-basic-offset))
+                            c-basic-offset
+                          tab-width)))))
 
 (provide 'guess-style)
 ;;; guess-style.el ends here
