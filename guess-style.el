@@ -27,6 +27,7 @@
     (web-mode-code-indent-offset . (guess-style-guess-indent web-mode))
     (web-mode-attr-indent-offset . (guess-style-guess-indent web-mode))
     (js-indent-level . (guess-style-guess-indent js-mode))
+    (js-switch-indent-offset . (guess-style-guess-indent js-mode))
     (js-indent-level . (guess-style-guess-indent json-mode))
     (js2-basic-offset . (guess-style-guess-indent js2-mode))
     (lua-indent-level . (guess-style-guess-indent lua-mode))
