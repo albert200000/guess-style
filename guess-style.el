@@ -21,6 +21,7 @@
     (c-basic-offset . (guess-style-guess-indent cc-mode))
     (nxml-child-indent . (guess-style-guess-indent xml-mode))
     (css-indent-offset . (guess-style-guess-indent css-mode))
+    (css-indent-offset . (guess-style-guess-indent scss-mode))
     (standard-indent . (guess-style-guess-indent web-mode))
     (web-mode-markup-indent-offset . (guess-style-guess-indent web-mode))
     (web-mode-code-indent-offset . (guess-style-guess-indent web-mode))
@@ -177,6 +178,7 @@ Special care is taken so no guesser is called twice."
            (cl-case major-mode
              (nxml-mode (when (boundp 'nxml-child-indent) nxml-child-indent))
              (css-mode (when (boundp 'css-indent-offset) css-indent-offset))
+             (scss-mode (when (boundp 'css-indent-offset) css-indent-offset))
              (web-mode (when (boundp 'web-mode-markup-indent-offset) web-mode-markup-indent-offset))
              (js-mode (when (boundp 'js-indent-level) js-indent-level))
              (json-mode (when (boundp 'js-indent-level) js-indent-level))
